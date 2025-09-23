@@ -32,8 +32,13 @@ def find_force_transition_velocity(df, velocity_col_name="速度", force_col_nam
     -------
     float
         The velocity at which the transition occurs, or None if not found.
+
+    Edit
+    ----
+    * Sep 23, 2025: drop nan values in input DataFrame.
     """
 
+    df = df.dropna()
     nPoints_list = range(3, len(df))
     vmax_list = []
     mean_err_list = []
