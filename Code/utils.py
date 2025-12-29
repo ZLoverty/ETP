@@ -143,9 +143,11 @@ def clean_data(raw_data: pd.DataFrame,
     data_clean.loc[:, "time_s"] -= data_clean.time_s.min()
 
     window = step_length // 10
-    min_length = step_length // 10
+    min_length = step_length // 2
     threshold = velocity_step / 10
     diff_length = step_length // 10
+
+    trim_length = step_length // 10
 
     ####
     data_clean.loc[:, "smooth_feedrate"] = data_clean.loc[:, feedrate_col].rolling(window).mean().values
@@ -156,7 +158,7 @@ def clean_data(raw_data: pd.DataFrame,
     cleaned_steps = []
     for step, g_step in data_clean.groupby("step_id"):
         if len(g_step) > min_length:
-            cleaned_steps.append(g_step)
+            cleaned_steps.append(g_step[:-trim_length])
     
     print(f"number of steps: {len(cleaned_steps)}")
 
