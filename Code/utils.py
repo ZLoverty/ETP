@@ -108,7 +108,8 @@ def clean_data(raw_data: pd.DataFrame,
                velocity_step: float = 0.8,
                feedrate_min: float = 0.2,
                force_min: float = 0.5,
-               feedrate_col: str = "feedrate_mms"):
+               feedrate_col: str = "feedrate_mms",
+               print_results: bool = True):
     """
     Parameters
     ----------
@@ -137,7 +138,7 @@ def clean_data(raw_data: pd.DataFrame,
 
     # remove tiny force entries
     force_min = 0.5 # N
-    data_clean = raw_data.loc[(raw_data.extrusion_force_N >= force_min)&(raw_data[feedrate_col]>feedrate_min)]
+    data_clean = raw_data.loc[(raw_data.extrusion_force_N >= force_min)&(raw_data[feedrate_col]>feedrate_min)].copy()
 
     # time start at 0
     data_clean.loc[:, "time_s"] -= data_clean.time_s.min()
@@ -150,8 +151,7 @@ def clean_data(raw_data: pd.DataFrame,
     trim_length = step_length // 10
 
     ####
-    data_clean.loc[:, "smooth_feedrate"] = data_clean.loc[:, feedrate_col].rolling(window).mean().values
-    data_clean.loc[:, "gradient"] = data_clean["smooth_feedrate"].diff(diff_length).abs()
+    data_clean.loc[:, "gradient"] = data_clean[feedrate_col].diff(diff_length).abs()
     data_clean.loc[:, "is_flat"] = data_clean["gradient"].lt(threshold)
     data_clean.loc[:, "step_id"] = (~data_clean["is_flat"]).cumsum()
 
@@ -159,7 +159,7 @@ def clean_data(raw_data: pd.DataFrame,
     for step, g_step in data_clean.groupby("step_id"):
         if len(g_step) > min_length:
             cleaned_steps.append(g_step[:-trim_length])
-    
-    print(f"number of steps: {len(cleaned_steps)}")
+    if print_results:
+        print(f"number of steps: {len(cleaned_steps)}")
 
     return cleaned_steps, data_clean
